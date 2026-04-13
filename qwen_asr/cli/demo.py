@@ -27,8 +27,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import gradio as gr
 import numpy as np
 import torch
-from qwen_asr import Qwen3ASRModel
 from scipy.io.wavfile import write as wav_write
+
+from qwen_asr import Qwen3ASRModel
 
 
 def _title_case_display(s: str) -> str:
@@ -130,7 +131,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  qwen-asr-demo --asr-checkpoint Qwen/Qwen3-ASR-1.7B\n"
             "  qwen-asr-demo --asr-checkpoint Qwen/Qwen3-ASR-1.7B --aligner-checkpoint Qwen/Qwen3-ForcedAligner-0.6B\n"
             "  qwen-asr-demo --backend vllm --cuda-visible-devices 0\n"
-            "  qwen-asr-demo --backend transformers --backend-kwargs '{\"device_map\":\"cuda:0\",\"dtype\":\"bfloat16\",\"attn_implementation\":\"flash_attention_2\"}'\n"
+            '  qwen-asr-demo --backend transformers --backend-kwargs \'{"device_map":"cuda:0","dtype":"bfloat16","attn_implementation":"flash_attention_2"}\'\n'
             "  qwen-asr-demo --backend vllm --backend-kwargs '{\"gpu_memory_utilization\":0.85}'\n"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
@@ -154,10 +155,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--cuda-visible-devices",
         default="0",
-        help=(
-            "Set CUDA_VISIBLE_DEVICES for the demo process (default: 0). "
-            "Use e.g. '0' or '1'"
-        ),
+        help=("Set CUDA_VISIBLE_DEVICES for the demo process (default: 0). Use e.g. '0' or '1'"),
     )
 
     parser.add_argument(
@@ -166,8 +164,8 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "JSON dict for backend-specific kwargs excluding checkpoints.\n"
             "Examples:\n"
-            "  transformers: '{\"device_map\":\"cuda:0\",\"dtype\":\"bfloat16\",\"attn_implementation\":\"flash_attention_2\",\"max_inference_batch_size\":32}'\n"
-            "  vllm        : '{\"gpu_memory_utilization\":0.8,\"max_inference_batch_size\":32}'\n"
+            '  transformers: \'{"device_map":"cuda:0","dtype":"bfloat16","attn_implementation":"flash_attention_2","max_inference_batch_size":32}\'\n'
+            '  vllm        : \'{"gpu_memory_utilization":0.8,"max_inference_batch_size":32}\'\n'
         ),
     )
     parser.add_argument(
@@ -175,7 +173,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "JSON dict for forced aligner kwargs (only used when --aligner-checkpoint is set).\n"
-            "Example: '{\"dtype\":\"bfloat16\",\"device_map\":\"cuda:0\"}'\n"
+            'Example: \'{"dtype":"bfloat16","device_map":"cuda:0"}\'\n'
         ),
     )
 
@@ -228,9 +226,9 @@ def _default_backend_kwargs(backend: str) -> Dict[str, Any]:
     if backend == "transformers":
         return dict(
             dtype=torch.bfloat16,
-            device_map="cuda:0",
+            # device_map="cuda:0",
             max_inference_batch_size=4,
-            max_new_tokens=512,
+            max_new_tokens=256,
         )
     else:
         return dict(
@@ -423,10 +421,7 @@ def build_demo(
                 return_time_stamps=return_ts,
             )
             if not isinstance(results, list) or len(results) != 1:
-                raise RuntimeError(
-                    f"Unexpected result size: {type(results)} "
-                    f"len={len(results) if isinstance(results, list) else 'N/A'}"
-                )
+                raise RuntimeError(f"Unexpected result size: {type(results)} len={len(results) if isinstance(results, list) else 'N/A'}")
 
             r = results[0]
 
@@ -533,4 +528,7 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    os.environ["NO_PROXY"] = "localhost,127.0.0.1"
+    os.environ["HTTP_PROXY"] = ""
+    os.environ["HTTPS_PROXY"] = ""
     raise SystemExit(main())
